@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ $# -le 0 ]; then
+	echo "Usage: apache [ start | stop | restart ]"
+else
+	sudo apachectl $@
+fi

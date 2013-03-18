@@ -1,0 +1,4 @@
+CFBundleName = "mailto_gmail5";
+CFBundleShortVersionString = "1.0";
+CFBundleGetInfoString = "mailto_gmail5 version 1.0 Copyright 2010 Jesse";
+NSHumanReadableCopyright = "Copyright 2010 Jesse.";

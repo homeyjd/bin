@@ -1,0 +1,4 @@
+CFBundleName = "qt_reset_positions";
+CFBundleShortVersionString = "1.0";
+CFBundleGetInfoString = "qt_reset_positions version 1.0 Copyright 2012 Jesse Decker";
+NSHumanReadableCopyright = "Copyright 2012 Jesse Decker.";

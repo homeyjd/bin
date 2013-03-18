@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# /Applications/TextEdit.app/Contents/MacOS/TextEdit $1 &
+# open /Applications/TextEdit.app $1
+
+# Old Way
+#if [ "$(id -u)" != "0" ]; then
+# New Way
+if [[ $EUID -ne 0 ]]; then
+	open -a BBEdit "$*"
+else
+	open -a TextWrangler "$*"
+fi
+

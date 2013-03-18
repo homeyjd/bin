@@ -1,0 +1,65 @@
+#!/bin/sh
+
+# Enter directory of the script file itself
+#DIR=$( php -r "echo dirname(realpath('$1'));" )
+
+if [ -n "$1" -a -f "$1" ]; then
+
+cd "`dirname "$1"`"
+
+SetTitleScript=$(cat <<EOF
+
+on run argv
+
+	set filename to item 1 of argv
+	set filetitle to item 2 of argv
+	
+	tell application "QuickTime Player 7"
+		open filename
+		rewind
+		select none
+		delay 0.4
+		make new annotation at end of annotations of front document with properties {full text:filetitle, name:"Full Name"}
+		-- set the full text of annotation "Full Name" of front document to filetitle
+	end tell
+	
+	-- ignoring application responses
+		tell application "System Events"
+			tell process "QuickTime Player 7"
+				activate
+				set position of window 1 to {20, 30}
+			end tell
+		end tell
+	-- end ignoring
+	
+	tell application "QuickTime Player 7"
+		close front document saving yes
+	end tell
+
+end run
+
+EOF
+)
+
+while IFS=$'\t' read -r -a args
+do
+	FILE="${args[0]}"
+	TITLE="${args[1]}"
+	
+	PATH=$( /usr/bin/php -r "echo @realpath('${args[0]}');" )
+	
+	if [ -n "$PATH" -a -w "$PATH" ]; then
+		echo "$FILE"
+		/usr/bin/osascript -e "$SetTitleScript" "$PATH" "$TITLE"
+	else
+		if [ -n "$FILE" -a -w "$FILE" ]; then
+			echo "$FILE"
+			/usr/bin/osascript -e "$SetTitleScript" "$FILE" "$TITLE"
+		else
+			echo "Skipping $FILE"
+		fi
+	fi
+	
+done < "$1"
+
+fi

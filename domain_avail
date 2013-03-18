@@ -1,0 +1,53 @@
+#!/bin/bash
+
+if [ ! "$1" ]; then
+	echo "Please give me a domain name!"
+	exit 1
+fi
+
+# pull in timerlib functions
+source ~/Applications/timerlib.sh
+
+DOMAIN="$1"
+
+# save current time at the beginning
+TIME=$(timerStart)
+
+# put whatever you want to time here
+TEMPFILE=$( mktemp -q /tmp/`basename $0`.XXXXXX )
+if [ $? -ne 0 ]; then
+	echo "$0: Can't create temp file, exiting..."
+	exit 1
+fi
+STATS=$( curl -o $TEMPFILE --retry 1 --retry-delay 2 -s -S -w "DNS:%{time_namelookup}, connect:%{time_connect}, starttransfer:%{time_starttransfer}, total:%{time_total}, %{url_effective} %{http_code}, %{num_connects} try(s)" "$DOMAIN" )
+
+# store how long it took
+SECONDS=$((0))
+STOP=$(timerCurrent)
+SECONDS=$(( $STOP - $TIME ))
+TIME=$(timerStop $TIME)
+
+if [ $SECONDS -gt 10 ]; then
+	# Perform a traceroute
+	TRACEROUTE=$(traceroute -S -m 32 "$DOMAIN")
+fi
+
+# Look for output
+DOWNLOADED=$( cat "$TEMPFILE" )
+if [[ "$DOWNLOADED" == *"</html>"* ]]; then
+	PHP=$( echo ${DOWNLOADED/*\/html>/} )
+	PHP=$( echo ${PHP/<!-- /} )
+	PHP=$( echo ${PHP/ -->/} )
+else 
+	PHP="no php stats"
+fi
+
+rm "$TEMPFILE"
+
+DATE=$( date ) #"+%Y-%m-%d--%H*%M*%S" )
+
+# Output in log form
+echo "$DATE	$1	$TIME	$STATS	$PHP"
+if [ "$TRACEROUTE" ]; then
+	echo "$TRACEROUTE"
+fi

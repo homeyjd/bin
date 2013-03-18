@@ -1,0 +1,4 @@
+CFBundleName = "qt_clip_last_frame";
+CFBundleShortVersionString = "1.0";
+CFBundleGetInfoString = "qt_clip_last_frame version 1.0 Copyright 2012 Jesse Decker";
+NSHumanReadableCopyright = "Copyright 2012 Jesse Decker.";

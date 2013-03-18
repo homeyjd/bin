@@ -1,0 +1,4 @@
+CFBundleName = "qtfaststart";
+CFBundleShortVersionString = "1.0";
+CFBundleGetInfoString = "qtfaststart version 1.0 Copyright 2011 Jesse Decker";
+NSHumanReadableCopyright = "Copyright 2011 Jesse Decker.";

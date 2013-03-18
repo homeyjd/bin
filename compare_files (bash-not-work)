@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Color files in /a that don't occur in /bash
+
+if [ $# -lt 2 ]; then
+	echo "Color files in source if they do not exist at destination."
+	echo "Usage:  color_if_not_exist \"source\" \"destination\""
+	exit
+fi
+
+
+function process {
+	FILES=${1}
+	OUT=
+	
+	# Replace './' with ''
+	FILES=${FILES//\.\//}
+	
+	while read -r FILE; do
+		FILE=$( basename "$FILE")
+		
+		#FILE=$( echo ${FILE%.*})
+		
+		# Delete hidden files
+		#FILE=${FILE//^\..*$/}
+		
+		# Remove extension
+		#FILE=${FILE//\..\{2,4\}/}
+		
+		if [[ ! $FILE =~ ^\. ]]; then
+			OUT=${OUT}$( echo -e "${FILE%.*}\n" )
+		fi
+		
+	done <<< "$FILES"
+	
+	echo ${OUT}
+}
+
+
+SRC=$( find "$1" -type f )
+DEST=$( find "$2" -type f )
+
+SRC=$( process "$SRC" )
+
+
+echo "$SRC"
+exit
+
+
+
+while read -r SRCFILE; do
+	FILE=$( basename "$SRCFILE" )
+	
+	while read -r DESTFILE; do
+		DESTFILE=$( basename "$DESTFILE" )
+		
+		if [[ "$DESTFILE" == *"$SRCFILE"* ]]; then
+			continue;
+		fi
+	done <<< "$DEST"
+	
+	echo "Coloring $SRCFILE"
+	label 1 "$SRCFILE"
+	
+done <<< "$SRC"

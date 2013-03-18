@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# make sure Users, jesse, and Sites all have "x"
+#chmod +x Users
+#chmod +x jesse
+#chmod +x Sites
+
+# reset all permissions on all files
+find /Users/jdecker/Sites -print0 | xargs -0 chmod 744
+# directories
+find /Users/jdecker/Sites -type d -print0 | xargs -0 chmod 755

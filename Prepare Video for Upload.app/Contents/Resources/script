@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+
+"""
+	Command line script for convenience. If this is in your path, you should
+	be able to run it directly like this::
+
+		qtfaststart
+"""
+
+import logging
+import os
+import shutil
+import sys
+import tempfile
+
+# Add parent directory to sys.path so that running from dev environment works
+sys.path.append(os.path.dirname(os.path.dirname((os.path.abspath(__file__)))))
+
+from optparse import OptionParser
+from qtfaststartsrc import VERSION
+from qtfaststartsrc import processor
+from qtfaststartsrc.exceptions import FastStartException
+
+log = logging.getLogger("qtfaststart")
+
+if __name__ == "__main__":
+	logging.basicConfig(level = logging.INFO, stream = sys.stdout,
+						format = "%(message)s")
+	
+	parser = OptionParser(usage="%prog [options] infile [infile2 [infile3]]",
+						  version="%prog " + VERSION)
+	
+	parser.add_option("-d", "--debug", dest="debug", default=False,
+					  action="store_true",
+					  help="Enable debug output")
+	parser.add_option("-l", "--list", dest="list", default=False,
+					  action="store_true",
+					  help="List top level atoms")
+	parser.add_option("-s", "--sample", dest="sample", default=False,
+					  action="store_true",
+					  help="Create a small sample of the input file")
+	parser.add_option("-o", "--output", dest="output", 
+					  help="Output filename, if omitted, overwrite original",
+					  metavar="FILE")
+	
+	options, args = parser.parse_args()
+	
+	if len(args) < 1:
+		parser.print_help()
+		raise SystemExit(1)
+	
+	if options.debug:
+		logging.getLogger().setLevel(logging.DEBUG)
+	
+	if options.list:
+		index = processor.get_index(open(args[0], "rb"))
+		
+		for atom, pos, size in index:
+			print atom, "(" + str(size) + " bytes)"
+			
+		raise SystemExit
+	
+	num_files = len(args)
+	
+	if (num_files < 1):
+		print "Must include at least one file to process"
+		raise SystemExit(1)
+	
+	if options.output:
+		outfile = options.output
+		num_files = 1
+	
+	limit = 0
+	if options.sample:
+		# Create a small sample (4 MiB)
+		limit = 4 * (1024 ** 2)
+	
+	file_index = -1
+	
+	while True:
+		file_index = file_index + 1
+		
+		if (file_index == num_files):
+			break;
+		
+		# Replace the original file!
+		if options.sample:
+			print "Please pass an output filename when used with --sample!"
+			raise SystemExit(1)
+		
+		tmp, tmpfile = tempfile.mkstemp()
+		os.close(tmp)
+		
+		try:
+			processor.process(args[file_index], tmpfile, limit = limit)
+		except FastStartException:
+			# A log message was printed, so exit with an error code
+			#raise SystemExit(1)
+			continue
+		except IOError as (errno, strerror):
+			print "IOError({0}): {1}".format(errno, strerror)
+			print "Continuing..."
+			continue
+	
+		# Move temp file to replace original
+		
+		if (options.output):
+			outfile = options.output
+		else:
+			outfile = args[file_index].replace(".f4v", ".m4v", 1)
+		
+		shutil.move(tmpfile, outfile)
+		
+		print "Finished processing {0}".format(args[file_index])

@@ -1,0 +1,8 @@
+#!/bin/bash
+echo using:
+echo $1
+echo $2
+echo $3
+echo $4
+
+open "https://mail.google.com/mail?view=cm&tf=0&to=` echo $1 | sed 's/mailto:\(.*\)/\1/' | sed 's/\&.*//' `&fs=1"

@@ -1,0 +1,136 @@
+#!/usr/bin/php
+<?php
+
+if (empty($argv) || count($argv) < 3) {
+	error_log( "This utility compares basenames (no extension) from source to destination. "
+		. "Arguments are lines with files, or names of directories. "
+		. "Dash negates the search, listing files that do NOT exist in destination.\n"
+		. "  Usage: compare_files [-] source dest\n" );
+	exit(1);
+}
+
+function proc($arr) {
+	$arr2 = array();
+	
+	if (!is_array($arr)) {
+		$arr = array($arr);
+	}
+	
+	foreach ($arr as &$a) {
+		$in = pathinfo($a);
+		$name = trim( $in['filename'] );
+		if (!empty($name) && substr($name, 0, 1) != '.') {
+			$arr2[] = $name;		
+		}
+	}
+	
+	return $arr2;
+}
+
+
+function walk_dir ($dir) {
+	if (substr($dir,0,1) != '.' && substr($dir,0,1) != DIRECTORY_SEPARATOR) {
+		$relativedir = '.'.DIRECTORY_SEPARATOR.$dir;
+	} else {
+		$relativedir = $dir;
+	}
+	
+	if (!is_dir($relativedir)) {
+		error_log( "'$dir' is not a directory." );
+		exit(1);
+	}
+	
+	if (!($df = @scandir($relativedir))) {
+		error_log( "Could not open directory '$relativedir'" );
+		exit(1);
+	}
+	
+	foreach ($df as &$file) {
+		if ( substr($file,0,1) == '.') continue;
+		if (!is_dir($relativedir.DIRECTORY_SEPARATOR.$file)) {
+			$files[] = $file;
+		} else {
+			// NOT RECURSIVE
+			//$files[] = walk_dir($relativedir.DIRECTORY_SEPARATOR.$file.DIRECTORY_SEPARATOR);
+		}
+	}
+	
+	return $files;
+}
+
+
+function build_file_list ($raw_text) {
+	$files = explode('\n', trim( preg_replace('#(\r|\n)+#', '\n', $raw_text), '\n'));
+	
+	if (count($files) == 1) {
+		$dir = $files[0];
+		$files = walk_dir($dir);
+	}
+	
+	$files = array_combine( $files, proc($files) );
+	
+	$duplicates = array_diff_key( $files, array_unique($files) );
+	
+	if ($duplicates && count($duplicates) > 0) {
+		foreach($duplicates as $dup) {
+			$duplicate_map = array();
+			foreach ($files as $orig=>$proc) {
+				if ($proc === $dup) {
+					$duplicate_map[] = $orig;
+				}
+			}
+			error_log( " -Warning: Duplicate basenames found in '$dir': " . implode(", ", $duplicate_map) );
+		}
+	}
+	
+	return $files;
+}
+
+$mode = count($argv) > 3 ? 1 : 0;
+define('COLOR_EXISTING_SOURCE_FILES', $mode == 0);
+define('COLOR_SOURCE_WHERE_DEST_MISSING', $mode == 1);
+
+$src_files = build_file_list( $mode == 0 ? $argv[1] : $argv[2] );
+$dest_files = build_file_list( $mode == 0 ? $argv[2] : $argv[3] );
+
+error_log( "Comparing ".count($src_files)." source files to ".count($dest_files)." destination files..." );
+
+$counter = 0;
+
+foreach ($src_files as $file=>&$proc) {
+	
+	if (substr($file,0,1)=='.') {
+		continue;
+	}
+	
+	if (COLOR_EXISTING_SOURCE_FILES) {
+		if ( in_array( $proc, $dest_files) ) {
+			$counter++;
+			echo "$file\n";
+		}
+	}
+	
+	if (COLOR_SOURCE_WHERE_DEST_MISSING) {
+		if ( ! in_array( $proc, $dest_files) ) {
+			$counter++;
+			echo "$file\n";
+		}
+	}
+}
+
+
+if (COLOR_EXISTING_SOURCE_FILES) {
+	if ($counter == 0) {
+		error_log( "None of the files in the source directory exist at that destination.\n" );
+	} else {
+		error_log( "Found $counter files in the source directory that existed at the destination.\n" );
+	}
+}
+
+if (COLOR_SOURCE_WHERE_DEST_MISSING) {
+	if ($counter == 0) {
+		error_log( "All files in the source had a matching destination basename.\n" );
+	} else {
+		error_log( "Found $counter files in the source directory that did not have matching destination basenames.\n" );
+	} 
+}

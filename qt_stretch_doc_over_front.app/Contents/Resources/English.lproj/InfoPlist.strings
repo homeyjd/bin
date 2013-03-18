@@ -1,0 +1,4 @@
+CFBundleName = "qt_stretch_doc_over_front";
+CFBundleShortVersionString = "1.0";
+CFBundleGetInfoString = "qt_stretch_doc_over_front version 1.0 Copyright 2012 Jesse Decker";
+NSHumanReadableCopyright = "Copyright 2012 Jesse Decker.";

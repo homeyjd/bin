@@ -1,0 +1,39 @@
+#!/usr/bin/php
+<?php
+
+function findFiles( $path = '.' ) {
+	if (!is_dir($path))
+		return;
+	
+	$dh = opendir($path);
+	if (!$dh) 
+		return;
+		
+	$files = array();
+	$exclude = array_flip( array('.', '..', '.DS_Store') );
+	
+	while( false !== ($file=readdir($dh))) {
+		if (isset($exclude[$file])) 
+			continue;
+		
+		if (is_dir("$path/$file")) {
+			$files = array_merge($files, findFiles("$path/$file"));
+		} else {
+			// perform action
+			echo "$path/$file\n";
+			$files[] = "$path/$file";
+		}
+	}
+	closedir($dh);
+	
+	return $files;
+}
+
+$files = findFiles('.');
+
+$loc = 0;
+foreach ($files as $f) {
+	$loc += count( file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) );
+}
+
+echo "Searched ".count($files)." files and found $loc lines of code.\n";

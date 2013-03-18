@@ -1,0 +1,4 @@
+CFBundleName = "renamefiles";
+CFBundleShortVersionString = "1.1";
+CFBundleGetInfoString = "renamefiles version 1.1 Copyright 2012 Jesse Decker";
+NSHumanReadableCopyright = "Copyright 2012 Jesse Decker.";

@@ -1,0 +1,66 @@
+#!/usr/bin/php
+<?php
+
+if (empty($argv[1])) {
+	error_log( "Renames files based on a tab-delimited file of \"[oldname]\\t[newname]\". If you do not specify a directory, the source directory is the basedir of the text file chosen.\n"
+		. "  Usage: renamefiles txtfile.txt [src_dir]" );
+	die(1);
+}
+
+$source_filename = $argv[1];
+
+if (!is_file($source_filename)) {
+	error_log( "The passed file {$source_filename} does not exists." );
+	die(1);
+}
+
+if (!empty($argv[2])) {
+	$source_directory = $argv[2];
+} else {
+	$source_directory = dirname($source_filename);
+}
+
+$checkRealPath = realpath($source_directory);
+if (empty($checkRealPath)) {
+	if (!is_dir($source_directory)) {
+		error_log( "Cannot open that source directory $source_directory." );
+		die(1);
+	}
+} else {
+	$source_directory = $checkRealPath;
+}
+
+$lines = @file($source_filename);
+
+if (empty($lines)) {
+	error_log( "Could not read $source_filename or the file was empty." );
+	die(1);
+}
+
+error_log( "Processing ".count($lines)." files in '$source_directory'." );
+
+
+foreach ($lines as $line) {
+
+	list($oldname, $newname) = explode("\t", trim($line), 3);
+	
+	if (empty($oldname) || empty($newname)
+		|| $oldname == '.' || $oldname == '..'
+		|| $newname == '.' || $newname == '..') {
+		continue;
+	}
+	
+	$oldname = $source_directory.DIRECTORY_SEPARATOR.trim($oldname);
+	$newname = $source_directory.DIRECTORY_SEPARATOR.trim($newname);
+	
+	if (is_file($oldname) || is_dir($oldname)) {
+	
+		if (@rename( $oldname, $newname )) {
+			echo "$newname\n";
+		} else {
+			error_log( "Could not rename $oldname" );
+		}
+	} else {
+		error_log( "Could not find $oldname" );
+	}
+}

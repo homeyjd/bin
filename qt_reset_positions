@@ -1,0 +1,46 @@
+#!/bin/sh
+
+SCRIPT=$(cat <<EOF
+
+on run argv
+	set filename to item 1 of argv
+	
+tell application "QuickTime Player 7"
+	open filename
+	rewind
+	select none
+	delay 0.4
+end tell
+
+-- ignoring application responses
+	tell application "System Events"
+		tell process "QuickTime Player 7"
+			-- activate
+			set position of window 1 to {20, 30}
+		end tell
+	end tell
+-- end ignoring
+
+tell application "QuickTime Player 7"
+	save front document
+	close front document
+end tell
+
+end run
+
+EOF
+)
+
+echo "Processing $# file(s):"
+
+for FILE in "$@"
+do	
+	REALPATH=$(php -r "echo realpath('$FILE');")
+	if [ -n "$REALPATH" -a -w "$REALPATH" ]; then
+		echo "$REALPATH"
+		osascript -e "$SCRIPT" "$REALPATH"
+	else
+		echo "$FILE"
+		osascript -e "$SCRIPT" "$FILE"
+	fi
+done
