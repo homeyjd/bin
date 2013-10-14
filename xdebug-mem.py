@@ -1,7 +1,7 @@
-#!/bin/python
+#!/usr/bin/env python
 
 import sys, os, locale, time, io
-from pprint import pprint
+#from pprint import pprint
 
 '''
 Analyzes the output of an XDebug script trace
@@ -11,15 +11,13 @@ http://svn.xdebug.org/cgi-bin/viewvc.cgi/xdebug/trunk/contrib/tracefile-analyser
 
 '''
 
- 
-
 def number_format(num, places=0):
     return locale.format("%.*f", (places, num), True)
 
 def printUsage():
-  print(" Usage:\n\tpython ", os.path.basename(__file__), " ./tracefile [sortkey] [num_elements]\n")
-	print(" Allowed sortkeys:\n\tcalls, time-inclusive, memory-inclusive, time-own, memory-own")
-	sys.exit(0)
+    print(" Usage:\n\tpython %s ./tracefile [sortkey] [num_elements]" % os.path.basename(__file__))
+    print(" Allowed sortkeys:\n\tcalls, time-inclusive, memory-inclusive, time-own, memory-own")
+    sys.exit(0)
 
 class XdebugTraceParser:
 	stack = []
@@ -43,7 +41,7 @@ class XdebugTraceParser:
 			size = os.path.getsize(filename)
 			startTime = time.time()
 			
-			print(" Parsing %.0fKB..." % (size/1024))
+			sys.stdout.write(" Parsing %.0fKB..." % (size/1024))
 			while True:
 				lines = handle.readlines(chunk)
 			
@@ -56,9 +54,9 @@ class XdebugTraceParser:
 				#read = handle.tell()
 				read = 0
 				
-				print( " (%5.2f%%)    read: %.0fk" % (( read / size ) * 100, read/1024))
+				sys.stdout.write( "\r Parsing %.0fKB  (%5.2f%%)  read: %.0fk" % (size/1024, ( read / size ) * 100, read/1024))
 			
-			print(" Done (%sKB in %.2f sec).\n" % (number_format(size /1024, 2), time.time()-startTime))
+			sys.stdout.write("\r Parsed %sKB in %.2f sec.            \n" % (number_format(size /1024, 2), time.time()-startTime))
 	
 	def parseLine(self, line):
 		parts = line.split("\t")
@@ -170,11 +168,11 @@ if __name__ == '__main__':
 		if nameLen > maxLen:
 			maxLen = nameLen
 			
-	print("Showing the", numElements, "most costly calls sorted by '"+sortKey+"'.\n")
+	print("\nShowing the %d most costly calls sorted by '%s'.\n" % (numElements, sortKey))
 
-	print("        "+(' ' * (maxLen - 8))+"       | Inclusive        | Own              ")
-	print("function"+(' ' * (maxLen - 8))+"#calls |   time    memory |   time    memory ")
-	print("--------"+('-' * (maxLen - 8))+"---------------------------------------------")
+	print("         "+(' ' * (maxLen - 8))+"       | Inclusive        | Own              ")
+	print("function "+(' ' * (maxLen - 8))+"#calls |   time    memory |   time    memory ")
+	print("---------"+('-' * (maxLen - 8))+"---------------------------------------------")
 	
 	# display functions
 	c = 0
@@ -183,7 +181,6 @@ if __name__ == '__main__':
 		c = c+1
 		if c > numElements: 
 			break
-		
 		
 		print( format % (
 			f['name'], f['calls'],

@@ -1,5 +1,4 @@
 #!/bin/php
-
 <?php
 /**
  * Analyzes the output of an XDebug script trace
