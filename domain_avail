@@ -1,8 +1,10 @@
 #!/bin/bash
 
 if [ ! "$1" ]; then
-	echo "Please give me a domain name!"
-	exit 1
+	echo " Usage: "`basename "$0"`" domain.com"
+	echo "   Checks if the domain is up, performs traceroute if longer than 10 seconds"
+	echo "   Also looks for PHP timing HTML snippet in page"
+	exit 0
 fi
 
 # pull in timerlib functions
