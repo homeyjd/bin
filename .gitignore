@@ -1,3 +1,4 @@
+# Mac apps
 Open Mailto in Browser (oascript).app
 Portal 2.app
 Flux.app
@@ -5,8 +6,21 @@ Portal 2 Publishing Tool.app
 Trine 2.app
 SeeDeClip Duo_3.2-1 Pro Demo.app
 SeeDeClip Run
+
+# Keys, logs, packages
 *.log
 *.pem
 *.key
 *.rsa
 *.pkg
+*.swp
+
+# Executable files
+*.phar
+*.jar
+
+# Random things
+jconsole
+ovftool
+sl
+subl
